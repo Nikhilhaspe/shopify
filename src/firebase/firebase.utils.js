@@ -1,6 +1,13 @@
 import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
-import { doc, getFirestore, setDoc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getFirestore,
+  setDoc,
+  getDoc,
+  collection,
+  writeBatch,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAOaZrlOnrCqPuaeo5PppFsZ_tUfAi-1GE",
@@ -16,6 +23,14 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
   if (!userAuth) return;
 
   const userRef = doc(db, `users/${userAuth.uid}`);
+
+  // const usersCollectionRef = collection(db, "users");
+  // const userCollectionSnapshot = await getDocs(usersCollectionRef);
+  // console.log("****Users REF: ", usersCollectionRef);
+  // console.log("****Users SS: ", userCollectionSnapshot);
+  // console.log("***Data");
+  // userCollectionSnapshot.forEach((doc) => console.log(doc.data()));
+
   const ss = await getDoc(userRef);
 
   if (!ss.exists()) {
@@ -33,6 +48,42 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
   }
 
   return userRef;
+};
+
+// BATCHED WRITE
+// UTILITY FUNCTION TO ADD DATA TO THE FIREBASE
+export const addCollectionAndDocuments = async (
+  collectionKey,
+  objectsToAdd
+) => {
+  const collectionRef = collection(db, collectionKey);
+  const batch = writeBatch(db);
+  objectsToAdd.forEach((obj) => {
+    const newDocRef = doc(collectionRef);
+    batch.set(newDocRef, obj);
+  });
+
+  return await batch.commit();
+};
+
+// ADDING ID, PATH(URL)
+// TO SOLLECTION SNAPSHOT
+export const convertCollectionsSnapshotToMap = (collections) => {
+  const transformedCollection = collections.docs.map((doc) => {
+    const { title, items } = doc.data();
+    return {
+      routeName: encodeURI(title.toLowerCase()),
+      id: doc.id,
+      title,
+      items,
+    };
+  });
+
+  // CONVERT ARRAY TO OBJECT NORMALISATION
+  return transformedCollection.reduce((accumulator, collection) => {
+    accumulator[collection.title.toLowerCase()] = collection;
+    return accumulator;
+  }, {});
 };
 
 // Initialize Firebase
