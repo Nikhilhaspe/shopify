@@ -23,16 +23,7 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
   if (!userAuth) return;
 
   const userRef = doc(db, `users/${userAuth.uid}`);
-
-  // const usersCollectionRef = collection(db, "users");
-  // const userCollectionSnapshot = await getDocs(usersCollectionRef);
-  // console.log("****Users REF: ", usersCollectionRef);
-  // console.log("****Users SS: ", userCollectionSnapshot);
-  // console.log("***Data");
-  // userCollectionSnapshot.forEach((doc) => console.log(doc.data()));
-
   const ss = await getDoc(userRef);
-
   if (!ss.exists()) {
     const { displayName, email } = userAuth;
     const createdAt = new Date();
@@ -46,7 +37,6 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
       .then((res) => console.log(res))
       .catch((err) => console.log("error", err));
   }
-
   return userRef;
 };
 
@@ -93,3 +83,13 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
 export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
+
+// USER SESSION CHECKING
+export const getCurrentuser = () => {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = auth.onAuthStateChanged((userAuth) => {
+      unsubscribe();
+      resolve(userAuth);
+    }, reject);
+  });
+};
