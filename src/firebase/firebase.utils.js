@@ -90,6 +90,6 @@ export const convertCollectionsSnapshotToMap = (collections) => {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+export const googleProvider = new GoogleAuthProvider();
 
-export const signInWithGoogle = () => signInWithPopup(auth, provider);
+export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
